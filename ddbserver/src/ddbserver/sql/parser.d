@@ -10,7 +10,6 @@ enum SqlTokenType : int {
     comment,
     str,
     number,
-    floating,
 
     keyword = 0x100, // reserved range for keywords
     op = 0x200,      // reserved for operators
@@ -162,7 +161,6 @@ struct SqlToken {
     @property bool isString() { return id == SqlTokenType.str; }
     @property bool isComment() { return id == SqlTokenType.comment; }
     @property bool isNumber() { return id == SqlTokenType.number; }
-    @property bool isFloating() { return id == SqlTokenType.floating; }
 }
 
 /// skip spaces, return false if end of line reached
