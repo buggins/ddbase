@@ -366,16 +366,38 @@ SqlToken parseNumber(ref string s) {
         buf.length = 1024;
     buf.length = 0;
     int pos = 0;
+    bool dotFound = false;
     for (; i < s.length; i++) {
+        if (pos >= buf.length)
+            buf.length = pos + 1024;
         char ch = s[i];
-        if (ch >= '0' && ch <= '9') {
-            if (pos >= buf.length)
-                buf.length = pos + 1024;
+        if (ch == '.' && !dotFound) {
+            dotFound = true;
+            buf[pos++] = ch;
+        } else if (ch >= '0' && ch <= '9') {
             buf[pos++] = ch;
         } else {
             break;
         }
     }
+    char ch = i < s.length ? s[i] : 0;
+    if (ch == 'e' || ch == 'E') {
+        i++;
+        ch = i < s.length ? s[i] : 0;
+        if (ch == '-' || ch == '+') {
+            i++;
+            ch = i < s.length ? s[i] : 0;
+        }
+        if (ch < '0' || ch > '9')
+            return SqlToken(SqlTokenType.error, "invalid number constant literal exponent");
+        while (ch >= '0' && ch <= '9') {
+            i++;
+            ch = i < s.length ? s[i] : 0;
+        }
+        ch = i < s.length ? s[i] : 0;
+    }
+    if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z'))
+        return SqlToken(SqlTokenType.error, "invalid number constant literal");
     s = s[i .. $];
     return SqlToken(SqlTokenType.number, buf[0..pos].dup);
 }
@@ -435,7 +457,7 @@ SqlToken parseToken(ref string s) {
         id = identCache.internString(identString);
         return SqlToken(id, identString);
     }
-    if (ch >= '0' && ch <='9')
+    if ((ch >= '0' && ch <='9') || (ch=='.' && ch2 >= '0' && ch2 <='9')) ///   1234   12323.432  .25
         return parseNumber(s);
     if (ch == '`') {
         // quoted ident in backquotes like `COLUMN NAME`
