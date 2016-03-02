@@ -1,2 +1,8 @@
-# ddbase
-database server written in D language 
+# DDBase
+Attempt to create SQL server written in D language 
+
+Implemented parts:
+
+* Logging 
+* SQL query tokenizer
+
